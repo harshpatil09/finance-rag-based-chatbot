@@ -1,0 +1,8 @@
+api/routes/ — one file per resource (auth.py, upload.py, chat.py later). Keeps endpoints organized as the app grows instead of one giant main.py
+core/ — cross-cutting concerns: config, security utilities, dependencies
+models/ — database table definitions (SQLAlchemy ORM classes)
+services/ — actual business logic (e.g. rag_service.py will hold your RAG pipeline). Routes stay thin — they just call services. This separation is what makes code testable and maintainable
+schemas/ — Pydantic classes defining what JSON shapes go in/out of your API (separate from models/, which is the DB shape)
+
+====================================================================================================
+Concept: Using a Settings class (instead of scattering os.getenv() calls everywhere) gives you autocomplete, type validation, and one single source of truth. This is the standard pattern in production FastAPI apps.
