@@ -2,4 +2,7 @@ pip install fastapi uvicorn[standard] python-dotenv --trusted-host pypi.org --tr
 -------------------------------------------------------------------------------------------------
 uvicorn app.main:app --reload --port 8000
 -------------------------------------------------------------------------
-pip install sqlalchemy pymysql alembic passlib[bcrypt] python-jose[cryptography] python-multipart pydantic-settings email-validator --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org
+pip install sqlalchemy pymysql alembic passlib[bcrypt] python-jose[cryptography] python-multipart pydantic-settings email-validator 
+
+--------------------------------------------------------------------------
+--trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org
