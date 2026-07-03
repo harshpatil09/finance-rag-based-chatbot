@@ -1,0 +1,50 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h1>Sign in</h1>
+    <p class="subtitle">Finance RAG Chatbot</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@company.com"
+          autocomplete="email"
+        />
+        <span class="field-error"
+          *ngIf="email?.invalid && email?.touched">
+          Enter a valid email address
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+        <span class="field-error"
+          *ngIf="password?.invalid && password?.touched">
+          Password must be at least 6 characters
+        </span>
+      </div>
+
+      <div class="server-error" *ngIf="error">{{ error }}</div>
+
+      <button type="submit" [disabled]="form.invalid || loading">
+        {{ loading ? 'Signing in...' : 'Sign in' }}
+      </button>
+
+    </form>
+
+    <p class="switch-link">
+      No account? <a routerLink="/register">Create one</a>
+    </p>
+  </div>
+</div>
