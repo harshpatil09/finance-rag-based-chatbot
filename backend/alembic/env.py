@@ -6,9 +6,13 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.cores.database import Base
-from app.models.user import User 
-
 from app.cores.config import settings
+
+# Tables
+from app.models.user import User 
+from app.models.report import Report
+from app.models.chunk import DocumentChunk
+
 
 
 # this is the Alembic Config object, which provides

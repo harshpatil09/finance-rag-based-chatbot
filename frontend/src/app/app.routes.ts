@@ -19,5 +19,11 @@ export const routes: Routes = [
       import('./dashboard/dashboard').then(m => m.DashboardComponent),
     canActivate: [authGuard]   // protected — guard runs before this route activates
   },
+  {
+    path: 'upload',
+    loadComponent: () =>
+      import('./upload/upload').then(m => m.UploadComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: 'login' }
 ];

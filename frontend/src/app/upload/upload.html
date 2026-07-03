@@ -1,0 +1,82 @@
+<div class="upload-container">
+  <h2>Upload quarterly report</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <div class="form-row">
+      <div class="field">
+        <label>Company name</label>
+        <input type="text" formControlName="companyName" placeholder="e.g. Apple Inc." />
+      </div>
+      <div class="field">
+        <label>Quarter</label>
+        <input type="text" formControlName="quarter" placeholder="e.g. Q3 2024" />
+      </div>
+    </div>
+
+    <!-- Drag and drop zone -->
+    <div
+      class="drop-zone"
+      [class.drag-over]="dragOver"
+      [class.has-file]="selectedFile"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+      (click)="fileInput.click()"
+    >
+      <input
+        #fileInput
+        type="file"
+        accept=".pdf"
+        style="display:none"
+        (change)="onFileSelect($event)"
+      />
+
+      <ng-container *ngIf="!selectedFile">
+        <div class="drop-icon">↑</div>
+        <p>Drag and drop a PDF here, or <span class="browse-link">browse</span></p>
+        <p class="drop-hint">Maximum file size: 50MB</p>
+      </ng-container>
+
+      <ng-container *ngIf="selectedFile">
+        <div class="file-info">
+          <span class="file-name">{{ selectedFile.name }}</span>
+          <span class="file-size">{{ formatBytes(selectedFile.size) }}</span>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Progress bar (visible only while uploading) -->
+    <div class="progress-bar-wrap" *ngIf="uploading">
+      <div class="progress-bar" [style.width.%]="uploadProgress"></div>
+      <span class="progress-label">{{ uploadProgress }}%</span>
+    </div>
+
+    <div class="server-error" *ngIf="error">{{ error }}</div>
+
+    <button
+      type="submit"
+      [disabled]="!selectedFile || form.invalid || uploading"
+    >
+      {{ uploading ? 'Uploading...' : 'Upload report' }}
+    </button>
+
+  </form>
+
+  <!-- Success state -->
+  <div class="success-card" *ngIf="uploadedReport">
+    <p>Report uploaded successfully</p>
+    <p class="meta">{{ uploadedReport.company_name }} · {{ uploadedReport.quarter }}</p>
+    <p class="meta">{{ formatBytes(uploadedReport.file_size) }} · Status: {{ uploadedReport.status }}</p>
+  </div>
+  <!-- Processing result (appears after pipeline completes) -->
+  <div class="success-card" *ngIf="processingResult">
+    <p>Processing complete</p>
+    <p class="meta">
+      {{ processingResult.total_chunks }} chunks extracted ·
+      {{ processingResult.text_chunks }} text ·
+      {{ processingResult.table_chunks }} tables
+    </p>
+  </div>
+
+</div>
