@@ -1,12 +1,24 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.cores.config import settings
 from app.api.routes import health, auth, upload
+from app.services.vector_service import ensure_collection_exists
 
-app = FastAPI(title=settings.PROJECT_NAME)
 
-# CORS must be added BEFORE routes — order matters in FastAPI middleware
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Runs once on startup — before the app accepts any requests
+    print("Starting up — initializing Qdrant collection...")
+    ensure_collection_exists()
+    print("Qdrant ready")
+    yield
+    # Anything after yield runs on shutdown (cleanup)
+
+
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

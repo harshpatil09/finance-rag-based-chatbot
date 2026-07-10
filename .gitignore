@@ -183,3 +183,10 @@ uploads/
 *.pdf
 *.docx
 *.xlsx
+
+
+# Qdrant local storage — can be large, regenerated from PDFs
+backend/qdrant_storage/
+
+# Sentence transformers model cache — downloaded automatically
+backend/.cache/

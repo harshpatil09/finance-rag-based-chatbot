@@ -8,6 +8,9 @@ from app.services.upload_service import save_upload
 from app.services.processing_service import process_report
 from app.schemas.report import ReportResponse
 
+from app.services.embedding_service import embed_text
+from app.services.vector_service import search_similar
+
 router = APIRouter()
 
 
@@ -51,3 +54,35 @@ def trigger_processing(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+    
+@router.get("/search/{report_id}")
+def search_report(
+    report_id: str,
+    q: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Test endpoint: embed a query and find similar chunks in this report.
+    Usage: GET /api/v1/search/{report_id}?q=what was the gross margin
+    """
+    query_vector = embed_text(q)
+    results = search_similar(
+        query_vector=query_vector,
+        report_id=report_id,
+        top_k=5
+    )
+
+    return {
+        "query": q,
+        "results": [
+            {
+                "score": round(r["score"], 4),
+                "section": r["payload"].get("section"),
+                "chunk_type": r["payload"].get("chunk_type"),
+                "page": r["payload"].get("page_number"),
+                "content_preview": r["payload"].get("content", "")[:200]
+            }
+            for r in results
+        ]
+    }

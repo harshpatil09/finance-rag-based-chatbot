@@ -1,4 +1,5 @@
 import os
+import uuid
 from sqlalchemy.orm import Session
 
 from app.cores.config import settings
@@ -6,63 +7,91 @@ from app.models.report import Report, ReportStatus
 from app.models.chunk import DocumentChunk
 from app.services.pdf_parser import parse_pdf
 from app.services.chunker import split_chunks
+from app.services.embedding_service import embed_batch
+from app.services.vector_service import ensure_collection_exists, upsert_chunks
 
 
 def process_report(report_id: str, db: Session) -> dict:
-    """
-    Full pipeline: PDF → parse → chunk → save chunks to MySQL → update status.
-    Called after a successful upload.
-
-    Returns a summary dict: { total_chunks, text_chunks, table_chunks }
-    """
-    # 1. Fetch report from DB
     report = db.query(Report).filter(Report.id == report_id).first()
     if not report:
         raise ValueError(f"Report {report_id} not found")
 
-    # 2. Mark as processing so the FE can show a spinner
     report.status = ReportStatus.processing
     db.commit()
 
     try:
-        # 3. Build the file path
         pdf_path = os.path.join(settings.UPLOAD_DIR, report.stored_filename)
-
         if not os.path.exists(pdf_path):
-            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+            raise FileNotFoundError(f"PDF not found: {pdf_path}")
 
-        # 4. Parse — extract text + tables
+        # Step 1 — Parse PDF into raw chunks
         raw_chunks = parse_pdf(pdf_path)
 
-        # 5. Chunk — split large text blocks, keep tables whole
+        # Step 2 — Split large chunks into smaller pieces
         chunks = split_chunks(raw_chunks)
 
-        # 6. Save all chunks to MySQL
-        # Delete any existing chunks for this report (idempotent — safe to re-run)
+        # Step 3 — Save text chunks to MySQL first (get stable IDs)
         db.query(DocumentChunk).filter(
             DocumentChunk.report_id == report_id
         ).delete()
 
         db_chunks = []
+        chunk_ids = []
         for chunk in chunks:
-            db_chunk = DocumentChunk(
+            chunk_id = str(uuid.uuid4())
+            chunk_ids.append(chunk_id)
+            db_chunks.append(DocumentChunk(
+                id=chunk_id,
                 report_id=report_id,
                 content=chunk.content,
                 chunk_type=chunk.chunk_type,
                 section=chunk.section,
                 page_number=chunk.page_number,
                 chunk_index=chunk.chunk_index,
-                token_count=len(chunk.content.split())  # rough word count
-            )
-            db_chunks.append(db_chunk)
+                token_count=len(chunk.content.split())
+            ))
 
-        db.bulk_save_objects(db_chunks)  # single INSERT for all chunks — much faster than looping
+        db.bulk_save_objects(db_chunks)
+        db.commit()
 
-        # 7. Update report status to ready
+        # Step 4 — Generate embeddings for all chunks in one batch call
+        # Batch is much faster than embedding one by one
+        print(f"Generating embeddings for {len(chunks)} chunks...")
+        texts = [c.content for c in chunks]
+        embeddings = embed_batch(texts)
+
+        # Step 5 — Store vectors in Qdrant with metadata payload
+        ensure_collection_exists()
+
+        qdrant_points = []
+        for i, (chunk, chunk_id, embedding) in enumerate(
+            zip(chunks, chunk_ids, embeddings)
+        ):
+            qdrant_points.append({
+                "id": chunk_id,
+                "vector": embedding,
+                "payload": {
+                    # Metadata stored in Qdrant alongside the vector.
+                    # This lets us filter searches by report, section, type
+                    # without needing to join back to MySQL for basic filtering.
+                    "report_id": report_id,
+                    "company": report.company_name,
+                    "quarter": report.quarter,
+                    "section": chunk.section,
+                    "chunk_type": chunk.chunk_type,
+                    "page_number": chunk.page_number,
+                    "chunk_index": chunk.chunk_index,
+                    "content": chunk.content   # store content here too for fast retrieval
+                }
+            })
+
+        upserted = upsert_chunks(qdrant_points)
+        print(f"Stored {upserted} vectors in Qdrant")
+
+        # Step 6 — Mark report as ready
         report.status = ReportStatus.ready
         db.commit()
 
-        # Return summary
         text_count = sum(1 for c in chunks if c.chunk_type == "text")
         table_count = sum(1 for c in chunks if c.chunk_type == "table")
 
@@ -71,11 +100,11 @@ def process_report(report_id: str, db: Session) -> dict:
             "total_chunks": len(chunks),
             "text_chunks": text_count,
             "table_chunks": table_count,
+            "vectors_stored": upserted,
             "status": "ready"
         }
 
     except Exception as e:
-        # If anything fails, mark report as failed so user knows
         report.status = ReportStatus.failed
         db.commit()
         raise e
