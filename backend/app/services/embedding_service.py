@@ -1,49 +1,30 @@
-from sentence_transformers import SentenceTransformer
+import ollama
 from app.cores.config import settings
-
-# Load model once at module level — loading it per-request would be
-# extremely slow (several seconds each time). Module-level = loaded once
-# when the app starts, reused for every embedding request.
-_model: SentenceTransformer | None = None
-
-
-def get_embedding_model() -> SentenceTransformer:
-    """
-    Lazy singleton — loads the model only on first call, then reuses it.
-    First call will download the model (~80MB) if not already cached.
-    Subsequent calls return the already-loaded model instantly.
-    """
-    global _model
-    if _model is None:
-        print(f"Loading embedding model: {settings.EMBEDDING_MODEL}")
-        _model = SentenceTransformer(settings.EMBEDDING_MODEL)
-        print("Embedding model loaded successfully")
-    return _model
 
 
 def embed_text(text: str) -> list[float]:
     """
-    Convert a single text string into a vector embedding.
-    Returns a list of floats (length = EMBEDDING_DIM = 384).
+    Convert a single text string into a vector using Ollama.
+    Ollama must be running locally (it starts automatically with the desktop app).
+    nomic-embed-text produces 768-dimensional vectors.
     """
-    model = get_embedding_model()
-    # encode() returns a numpy array — .tolist() converts to plain Python list
-    # normalize_embeddings=True makes vectors unit length (required for cosine similarity)
-    embedding = model.encode(text, normalize_embeddings=True)
-    return embedding.tolist()
+    response = ollama.embeddings(
+        model=settings.EMBEDDING_MODEL,
+        prompt=text
+    )
+    return response["embedding"]
 
 
 def embed_batch(texts: list[str]) -> list[list[float]]:
     """
-    Embed multiple texts in one call — much faster than calling embed_text()
-    in a loop because the model processes them in parallel batches internally.
-    Use this when embedding all chunks of a document.
+    Embed multiple texts by calling Ollama sequentially.
+    Ollama doesn't have a native batch endpoint so we loop —
+    still fast since it's a local API call with no network latency.
     """
-    model = get_embedding_model()
-    embeddings = model.encode(
-        texts,
-        normalize_embeddings=True,
-        batch_size=32,        # process 32 texts at a time
-        show_progress_bar=True
-    )
-    return embeddings.tolist()
+    embeddings = []
+    total = len(texts)
+    for i, text in enumerate(texts):
+        print(f"Embedding chunk {i+1}/{total}...")
+        embedding = embed_text(text)
+        embeddings.append(embedding)
+    return embeddings

@@ -61,9 +61,9 @@ def search_similar(
 ) -> list[dict]:
     client = get_qdrant_client()
 
-    results = client.search(
+    results = client.query_points(
         collection_name=settings.QDRANT_COLLECTION,
-        query_vector=query_vector,
+        query=query_vector,
         query_filter=Filter(
             must=[
                 FieldCondition(
@@ -84,7 +84,7 @@ def search_similar(
             "score": hit.score,
             "payload": hit.payload
         }
-        for hit in results
+        for hit in results.points
     ]
 
 
