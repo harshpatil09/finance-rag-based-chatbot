@@ -23,5 +23,9 @@ class Settings(BaseSettings):
     QDRANT_COLLECTION: str = "finance_chunks"
     EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
     EMBEDDING_DIM: int = 384
+    
+    # Groq LLM
+    GROQ_API_KEY: str
+    GROQ_MODEL: str = "mixtral-8x7b-32768"
 
 settings = Settings()
