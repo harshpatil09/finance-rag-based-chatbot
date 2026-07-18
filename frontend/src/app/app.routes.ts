@@ -25,5 +25,11 @@ export const routes: Routes = [
       import('./upload/upload').then(m => m.UploadComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'chat/:reportId',
+    loadComponent: () =>
+      import('./chat/chat').then(m => m.ChatComponent),
+    canActivate: [authGuard]
+  },
   { path: '**', redirectTo: 'login' }
 ];

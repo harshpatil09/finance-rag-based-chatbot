@@ -1,0 +1,57 @@
+<div class="chat-container">
+
+  <div class="chat-header">
+    <h2>Financial Report Assistant</h2>
+    <span class="report-badge">Report ID: {{ reportId | slice:0:8 }}...</span>
+  </div>
+
+  <!-- Message list -->
+  <div class="messages" #messageContainer>
+    <div
+      *ngFor="let msg of messages"
+      class="message"
+      [class.user]="msg.role === 'user'"
+      [class.assistant]="msg.role === 'assistant'"
+    >
+      <div class="bubble">
+        <!-- Loading dots -->
+        <ng-container *ngIf="msg.loading">
+          <span class="loading-dots">
+            <span></span><span></span><span></span>
+          </span>
+        </ng-container>
+
+        <!-- Message content -->
+        <ng-container *ngIf="!msg.loading">
+          <p class="content">{{ msg.content }}</p>
+
+          <!-- Source citations -->
+          <div class="sources" *ngIf="msg.sources && msg.sources.length">
+            <p class="sources-label">Sources</p>
+            <div class="source-chip" *ngFor="let src of msg.sources">
+              <span class="src-rank">#{{ src.rank }}</span>
+              <span class="src-section">{{ src.section }}</span>
+              <span class="src-page">p.{{ src.page }}</span>
+              <span class="src-score">{{ src.score }}</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="input-area">
+    <textarea
+      [(ngModel)]="question"
+      (keydown)="onKeyDown($event)"
+      placeholder="Ask about revenue, margins, cash flow..."
+      rows="2"
+      [disabled]="loading"
+    ></textarea>
+    <button (click)="sendMessage()" [disabled]="!question.trim() || loading">
+      {{ loading ? '...' : 'Send' }}
+    </button>
+  </div>
+
+</div>

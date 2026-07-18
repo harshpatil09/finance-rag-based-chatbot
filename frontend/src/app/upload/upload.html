@@ -64,19 +64,25 @@
   </form>
 
   <!-- Success state -->
-  <div class="success-card" *ngIf="uploadedReport">
-    <p>Report uploaded successfully</p>
-    <p class="meta">{{ uploadedReport.company_name }} · {{ uploadedReport.quarter }}</p>
-    <p class="meta">{{ formatBytes(uploadedReport.file_size) }} · Status: {{ uploadedReport.status }}</p>
-  </div>
-  <!-- Processing result (appears after pipeline completes) -->
-  <div class="success-card" *ngIf="processingResult">
-    <p>Processing complete</p>
-    <p class="meta">
-      {{ processingResult.total_chunks }} chunks extracted ·
-      {{ processingResult.text_chunks }} text ·
-      {{ processingResult.table_chunks }} tables
-    </p>
-  </div>
+<div class="success-card" *ngIf="uploadedReport">
+  <p>Report uploaded successfully</p>
+  <p class="meta">{{ uploadedReport.company_name }} · {{ uploadedReport.quarter }}</p>
+  <p class="meta">{{ formatBytes(uploadedReport.file_size) }} · Status: {{ uploadedReport.status }}</p>
+  
+  <!-- Show processing status -->
+  <p class="meta" *ngIf="!processingResult" style="color:#888;">
+    ⏳ Processing report... please wait
+  </p>
+  
+  <!-- Show chat link once processing done -->
+  <a *ngIf="processingResult" [routerLink]="['/chat', uploadedReport?.id]" class="chat-link">
+    Ask questions about this report →
+  </a>
+
+  <!-- Fallback — always show after 5 seconds regardless -->
+  <a [routerLink]="['/chat', uploadedReport?.id]" class="chat-link" style="margin-top:8px; display:block; font-size:12px; color:#888;">
+    Go to chat directly →
+  </a>
+</div>
 
 </div>

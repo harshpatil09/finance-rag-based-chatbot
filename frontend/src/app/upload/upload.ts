@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpEventType } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { UploadService, ReportResponse } from '../core/services/upload';
 import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './upload.html'
 })
 export class UploadComponent {
@@ -24,7 +25,8 @@ export class UploadComponent {
   constructor(
     private fb: FormBuilder,
     private uploadService: UploadService,
-    private http: HttpClient          // ← added for processing call
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef    // ← add this
   ) {
     this.form = this.fb.group({
       companyName: ['', Validators.required],
@@ -68,16 +70,19 @@ export class UploadComponent {
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);
+          this.cdr.detectChanges();    // ← force UI update on each progress event
         }
         if (event.type === HttpEventType.Response) {
           this.uploadedReport = event.body!;
           this.uploading = false;
-          this.triggerProcessing(event.body!.id);  // ← auto-trigger pipeline
+          this.cdr.detectChanges();    // ← force UI update on completion
+          this.triggerProcessing(event.body!.id);
         }
       },
       error: (err) => {
         this.error = err.error?.detail || 'Upload failed. Please try again.';
         this.uploading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -86,10 +91,13 @@ export class UploadComponent {
     this.http.post(`${environment.apiUrl}/process/${reportId}`, {}).subscribe({
       next: (result: any) => {
         this.processingResult = result;
+        this.cdr.detectChanges();
       },
-      error: () => {
-        // processing failed silently — user sees upload success at least
-        // we'll add proper error handling in M8
+      error: (err: any) => {
+        // Temporarily show error so we can debug
+        console.error('Processing failed:', err);
+        this.error = `Processing failed: ${err.error?.detail || err.message || 'Unknown error'}`;
+        this.cdr.detectChanges();
       }
     });
   }

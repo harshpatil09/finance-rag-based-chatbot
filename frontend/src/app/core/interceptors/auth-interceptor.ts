@@ -1,27 +1,29 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth';
+import { Router } from '@angular/router';
 
-// Functional interceptor (Angular 17+ style — no class needed)
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
   const authService = inject(AuthService);
+  const router = inject(Router);
   const token = authService.getToken();
 
-  // If we have a token, clone the request and add the Authorization header.
-  // We CLONE because HttpRequest objects are immutable — you cannot modify them,
-  // only create a new one with the changes you want.
-  if (token) {
-    const authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-    return next(authReq);
-  }
+  const authReq = token ? req.clone({
+    setHeaders: { Authorization: `Bearer ${token}` }
+  }) : req;
 
-  // No token — pass the request through unchanged (e.g. login/register calls)
-  return next(req);
+  return next(authReq).pipe(
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        // Token expired — logout and redirect to login
+        authService.logout();
+        router.navigate(['/login']);
+      }
+      return throwError(() => error);
+    })
+  );
 };
