@@ -9,6 +9,7 @@ from app.services.pdf_parser import parse_pdf
 from app.services.chunker import split_chunks
 from app.services.embedding_service import embed_batch
 from app.services.vector_service import ensure_collection_exists, upsert_chunks
+from app.services.insights_service import extract_insights
 
 
 def process_report(report_id: str, db: Session) -> dict:
@@ -94,6 +95,14 @@ def process_report(report_id: str, db: Session) -> dict:
 
         text_count = sum(1 for c in chunks if c.chunk_type == "text")
         table_count = sum(1 for c in chunks if c.chunk_type == "table")
+        
+        # Step 7 — Extract insights (non-critical — don't fail pipeline if this fails)
+        try:
+            print(f"Extracting financial insights for report {report_id}...")
+            extract_insights(report_id, db)
+            print("Insights extracted successfully")
+        except Exception as insight_error:
+            print(f"Insights extraction failed (non-critical): {insight_error}")
 
         return {
             "report_id": report_id,

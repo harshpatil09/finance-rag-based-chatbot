@@ -13,6 +13,7 @@ from app.models.user import User
 from app.models.report import Report
 from app.models.chunk import DocumentChunk
 
+from app.models.insight import ReportInsight
 
 
 # this is the Alembic Config object, which provides

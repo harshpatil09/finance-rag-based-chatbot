@@ -31,5 +31,12 @@ export const routes: Routes = [
       import('./chat/chat').then(m => m.ChatComponent),
     canActivate: [authGuard]
   },
-  { path: '**', redirectTo: 'login' }
+  {
+  path: 'dashboard/:reportId',
+    loadComponent: () =>
+      import('./dashboard/report-dashboard/report-dashboard')
+        .then(m => m.ReportDashboardComponent),
+    canActivate: [authGuard]
+  },
+    { path: '**', redirectTo: 'login' }
 ];

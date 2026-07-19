@@ -1,13 +1,13 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ChatService, ChatMessage } from '../core/services/chat';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './chat.html'
 })
 export class ChatComponent implements OnInit, AfterViewChecked {
@@ -59,7 +59,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
           };
         }
         this.loading = false;
-        this.cdr.detectChanges();    // ← force answer to render
+        this.cdr.detectChanges();    // ← 
       },
       error: () => {
         const loadingIndex = this.messages.map(m => m.loading).lastIndexOf(true);
