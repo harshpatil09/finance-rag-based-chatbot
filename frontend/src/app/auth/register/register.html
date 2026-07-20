@@ -1,50 +1,30 @@
-<div class="auth-container">
+<div class="auth-page">
   <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">F</div>
+      <div class="logo-text">FinSight <span>AI</span></div>
+    </div>
     <h1>Create account</h1>
-    <p class="subtitle">Finance RAG Chatbot</p>
+    <p class="auth-subtitle">Start analyzing financial reports with AI</p>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
-
       <div class="field">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@company.com"
-          autocomplete="email"
-        />
-        <span class="field-error"
-          *ngIf="email?.invalid && email?.touched">
-          Enter a valid email address
-        </span>
+        <label>Email address</label>
+        <input type="email" formControlName="email" placeholder="you@company.com" autocomplete="email"/>
+        <span class="field-error" *ngIf="email?.invalid && email?.touched">Enter a valid email</span>
       </div>
-
       <div class="field">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          placeholder="Min. 6 characters"
-          autocomplete="new-password"
-        />
-        <span class="field-error"
-          *ngIf="password?.invalid && password?.touched">
-          Password must be at least 6 characters
-        </span>
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="Min. 6 characters" autocomplete="new-password"/>
+        <span class="field-error" *ngIf="password?.invalid && password?.touched">Min. 6 characters</span>
       </div>
-
-      <div class="server-error" *ngIf="error">{{ error }}</div>
-
-      <button type="submit" [disabled]="form.invalid || loading">
+      <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" [disabled]="form.invalid || loading">
+        <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
         {{ loading ? 'Creating account...' : 'Create account' }}
       </button>
-
     </form>
 
-    <p class="switch-link">
-      Already have an account? <a routerLink="/login">Sign in</a>
-    </p>
+    <p class="auth-footer">Already have an account? <a routerLink="/login">Sign in</a></p>
   </div>
 </div>

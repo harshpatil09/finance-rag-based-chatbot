@@ -1,50 +1,30 @@
-<div class="auth-container">
+<div class="auth-page">
   <div class="auth-card">
-    <h1>Sign in</h1>
-    <p class="subtitle">Finance RAG Chatbot</p>
+    <div class="auth-logo">
+      <div class="logo-icon">F</div>
+      <div class="logo-text">FinSight <span>AI</span></div>
+    </div>
+    <h1>Welcome back</h1>
+    <p class="auth-subtitle">Sign in to your account to continue</p>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
-
       <div class="field">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@company.com"
-          autocomplete="email"
-        />
-        <span class="field-error"
-          *ngIf="email?.invalid && email?.touched">
-          Enter a valid email address
-        </span>
+        <label>Email address</label>
+        <input type="email" formControlName="email" placeholder="you@company.com" autocomplete="email"/>
+        <span class="field-error" *ngIf="email?.invalid && email?.touched">Enter a valid email</span>
       </div>
-
       <div class="field">
-        <label for="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          formControlName="password"
-          placeholder="••••••••"
-          autocomplete="current-password"
-        />
-        <span class="field-error"
-          *ngIf="password?.invalid && password?.touched">
-          Password must be at least 6 characters
-        </span>
+        <label>Password</label>
+        <input type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password"/>
+        <span class="field-error" *ngIf="password?.invalid && password?.touched">Min. 6 characters</span>
       </div>
-
-      <div class="server-error" *ngIf="error">{{ error }}</div>
-
-      <button type="submit" [disabled]="form.invalid || loading">
+      <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" [disabled]="form.invalid || loading">
+        <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
         {{ loading ? 'Signing in...' : 'Sign in' }}
       </button>
-
     </form>
 
-    <p class="switch-link">
-      No account? <a routerLink="/register">Create one</a>
-    </p>
+    <p class="auth-footer">No account? <a routerLink="/register">Create one free</a></p>
   </div>
 </div>

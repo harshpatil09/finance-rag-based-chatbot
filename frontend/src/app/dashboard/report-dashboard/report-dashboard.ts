@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { InsightsService, ReportInsight } from '../../core/services/insights';
+import { NavbarComponent } from '../../core/components/navbar/navbar';
 
 @Component({
   selector: 'app-report-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgApexchartsModule],
+  imports: [CommonModule, RouterLink, NgApexchartsModule, NavbarComponent],
   templateUrl: './report-dashboard.html'
 })
 export class ReportDashboardComponent implements OnInit {

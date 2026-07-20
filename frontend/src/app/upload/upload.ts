@@ -5,11 +5,13 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { UploadService, ReportResponse } from '../core/services/upload';
 import { environment } from '../../environments/environment';
+import { NavbarComponent } from '../core/components/navbar/navbar';
+
 
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, NavbarComponent],
   templateUrl: './upload.html'
 })
 export class UploadComponent {

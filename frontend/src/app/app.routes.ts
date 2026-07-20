@@ -2,7 +2,10 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  // Default redirect
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+
+  // Auth routes (public)
   {
     path: 'login',
     loadComponent: () =>
@@ -13,11 +16,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./auth/register/register').then(m => m.RegisterComponent)
   },
+
+  // Protected routes
   {
-    path: 'dashboard',
+    path: 'home',
     loadComponent: () =>
       import('./dashboard/dashboard').then(m => m.DashboardComponent),
-    canActivate: [authGuard]   // protected — guard runs before this route activates
+    canActivate: [authGuard]
   },
   {
     path: 'upload',
@@ -26,17 +31,19 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'chat/:reportId',
-    loadComponent: () =>
-      import('./chat/chat').then(m => m.ChatComponent),
-    canActivate: [authGuard]
-  },
-  {
-  path: 'dashboard/:reportId',
+    path: 'dashboard/:reportId',
     loadComponent: () =>
       import('./dashboard/report-dashboard/report-dashboard')
         .then(m => m.ReportDashboardComponent),
     canActivate: [authGuard]
   },
-    { path: '**', redirectTo: 'login' }
+  {
+    path: 'chat/:reportId',
+    loadComponent: () =>
+      import('./chat/chat').then(m => m.ChatComponent),
+    canActivate: [authGuard]
+  },
+
+  // Fallback
+  { path: '**', redirectTo: 'login' }
 ];

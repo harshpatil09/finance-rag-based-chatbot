@@ -1,6 +1,37 @@
-<div style="padding: 2rem;">
-  <h1>Dashboard</h1>
-  <a routerLink="/upload">Upload a report</a>
-  <br><br>
-  <button (click)="logout()">Sign out</button>
+<app-navbar></app-navbar>
+<div class="main-content">
+  <div class="home-page">
+
+    <div class="home-header">
+      <h1 class="home-title">Your Reports</h1>
+    </div>
+
+    <div class="empty-state" *ngIf="reports.length === 0">
+      <div class="empty-icon">📂</div>
+      <div class="empty-title">No reports yet</div>
+      <p class="empty-desc">Upload a quarterly financial report to get started with AI-powered analysis</p>
+      <a routerLink="/upload" class="btn btn-primary btn-lg">Upload your first report</a>
+    </div>
+
+    <div class="report-grid" *ngIf="reports.length > 0">
+      <div class="report-card" *ngFor="let report of reports">
+        <div class="report-name">{{ report.filename }}</div>
+        <div class="report-meta">
+          {{ report.company_name }} · {{ report.quarter }}
+          <span class="chip chip-green" *ngIf="report.status === 'ready'" style="margin-left:6px;">Ready</span>
+          <span class="chip chip-amber" *ngIf="report.status === 'processing'" style="margin-left:6px;">Processing</span>
+          <span class="chip chip-gray" *ngIf="report.status === 'uploaded'" style="margin-left:6px;">Uploaded</span>
+        </div>
+        <div class="report-actions">
+          <a *ngIf="report.status === 'ready'" [routerLink]="['/dashboard', report.id]" class="btn btn-primary btn-sm">
+            📊 Insights
+          </a>
+          <a *ngIf="report.status === 'ready'" [routerLink]="['/chat', report.id]" class="btn btn-secondary btn-sm">
+            💬 Chat
+          </a>
+          <span *ngIf="report.status !== 'ready'" style="font-size:13px;color:var(--text-muted);">{{ report.status }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ChatService, ChatMessage } from '../core/services/chat';
+import { NavbarComponent } from '../core/components/navbar/navbar';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
   templateUrl: './chat.html'
 })
 export class ChatComponent implements OnInit, AfterViewChecked {

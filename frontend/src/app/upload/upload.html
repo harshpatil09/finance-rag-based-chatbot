@@ -1,88 +1,86 @@
-<div class="upload-container">
-  <h2>Upload quarterly report</h2>
+<app-navbar></app-navbar>
+<div class="main-content">
+  <div class="upload-page">
+    <h1 class="page-title">Upload quarterly report</h1>
+    <p class="page-subtitle">Upload a PDF financial report to extract insights and enable AI-powered Q&A</p>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
-
-    <div class="form-row">
-      <div class="field">
-        <label>Company name</label>
-        <input type="text" formControlName="companyName" placeholder="e.g. Apple Inc." />
-      </div>
-      <div class="field">
-        <label>Quarter</label>
-        <input type="text" formControlName="quarter" placeholder="e.g. Q3 2024" />
-      </div>
-    </div>
-
-    <!-- Drag and drop zone -->
-    <div
-      class="drop-zone"
-      [class.drag-over]="dragOver"
-      [class.has-file]="selectedFile"
-      (dragover)="onDragOver($event)"
-      (dragleave)="onDragLeave()"
-      (drop)="onDrop($event)"
-      (click)="fileInput.click()"
-    >
-      <input
-        #fileInput
-        type="file"
-        accept=".pdf"
-        style="display:none"
-        (change)="onFileSelect($event)"
-      />
-
-      <ng-container *ngIf="!selectedFile">
-        <div class="drop-icon">↑</div>
-        <p>Drag and drop a PDF here, or <span class="browse-link">browse</span></p>
-        <p class="drop-hint">Maximum file size: 50MB</p>
-      </ng-container>
-
-      <ng-container *ngIf="selectedFile">
-        <div class="file-info">
-          <span class="file-name">{{ selectedFile.name }}</span>
-          <span class="file-size">{{ formatBytes(selectedFile.size) }}</span>
+    <div class="upload-card">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <div class="field">
+            <label>Company name</label>
+            <input type="text" formControlName="companyName" placeholder="e.g. Apple Inc."/>
+          </div>
+          <div class="field">
+            <label>Quarter</label>
+            <input type="text" formControlName="quarter" placeholder="e.g. Q3 2024"/>
+          </div>
         </div>
-      </ng-container>
+
+        <div class="drop-zone"
+          [class.drag-over]="dragOver"
+          [class.has-file]="selectedFile"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()">
+          <input #fileInput type="file" accept=".pdf" style="display:none" (change)="onFileSelect($event)"/>
+          <ng-container *ngIf="!selectedFile">
+            <div class="drop-icon">📄</div>
+            <p>Drag and drop a PDF here, or <span class="browse-link">browse files</span></p>
+            <p class="drop-hint">PDF only · Maximum 50MB</p>
+          </ng-container>
+          <ng-container *ngIf="selectedFile">
+            <div class="file-info">
+              <span class="file-name">✓ {{ selectedFile.name }}</span>
+              <span class="file-size">{{ formatBytes(selectedFile.size) }}</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="progress-wrap" *ngIf="uploading">
+          <div class="progress-header">
+            <span>Uploading...</span>
+            <span>{{ uploadProgress }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+          </div>
+        </div>
+
+        <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-lg"
+          [disabled]="!selectedFile || form.invalid || uploading">
+          <span class="spinner" *ngIf="uploading" style="width:16px;height:16px;border-width:2px;border-color:rgba(255,255,255,.3);border-top-color:white;"></span>
+          {{ uploading ? 'Uploading...' : 'Upload report' }}
+        </button>
+      </form>
     </div>
 
-    <!-- Progress bar (visible only while uploading) -->
-    <div class="progress-bar-wrap" *ngIf="uploading">
-      <div class="progress-bar" [style.width.%]="uploadProgress"></div>
-      <span class="progress-label">{{ uploadProgress }}%</span>
-    </div>
+    <!-- Success + processing result -->
+    <div class="result-card" *ngIf="uploadedReport">
+      <p class="result-title">✓ Report uploaded successfully</p>
+      <p class="result-meta">{{ uploadedReport.company_name }} · {{ uploadedReport.quarter }}</p>
+      <p class="result-meta">{{ formatBytes(uploadedReport.file_size) }}</p>
 
-    <div class="server-error" *ngIf="error">{{ error }}</div>
+      <div class="result-processing" *ngIf="!processingResult">
+        <span class="spinner"></span>
+        Processing report — extracting text, tables and generating embeddings...
+      </div>
 
-    <button
-      type="submit"
-      [disabled]="!selectedFile || form.invalid || uploading"
-    >
-      {{ uploading ? 'Uploading...' : 'Upload report' }}
-    </button>
+      <div class="alert alert-success" *ngIf="processingResult" style="margin:12px 0 0;">
+        ✓ Processing complete — {{ processingResult.total_chunks }} chunks · {{ processingResult.text_chunks }} text · {{ processingResult.table_chunks }} tables
+      </div>
 
-  </form>
-
-  <!-- Success state -->
-  <div class="success-card" *ngIf="uploadedReport">
-    <p>Report uploaded successfully</p>
-    <p class="meta">{{ uploadedReport.company_name }} · {{ uploadedReport.quarter }}</p>
-    <p class="meta">{{ formatBytes(uploadedReport.file_size) }} · Status: {{ uploadedReport.status }}</p>
-    
-    <!-- Show processing status -->
-    <p class="meta" *ngIf="!processingResult" style="color:#888;">
-      ⏳ Processing report... please wait
-    </p>
-    
-    <!-- Show both links only after processing completes -->
-    <div *ngIf="processingResult" style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
-      <a [routerLink]="['/dashboard', uploadedReport.id]" class="chat-link">
-        View insights →
-      </a>
-      <a [routerLink]="['/chat', uploadedReport.id]" class="chat-link">
-        Ask questions →
-      </a>
+      <div class="result-actions" *ngIf="processingResult">
+        <a [routerLink]="['/dashboard', uploadedReport.id]" class="btn btn-primary">
+          View insights →
+        </a>
+        <a [routerLink]="['/chat', uploadedReport.id]" class="btn btn-secondary">
+          Chat with report
+        </a>
+      </div>
     </div>
   </div>
-
 </div>

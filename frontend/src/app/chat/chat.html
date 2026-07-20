@@ -1,41 +1,44 @@
-<div class="chat-container">
-
+<app-navbar></app-navbar>
+<div class="chat-page">
   <div class="chat-header">
-    <h2>Financial Report Assistant</h2>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <a [routerLink]="['/dashboard', reportId]" style="font-size:12px;color:#185FA5;text-decoration:none;">View insights</a>
-      <span class="report-badge">Report ID: {{ reportId | slice:0:8 }}...</span>
+    <div>
+      <div class="chat-title">Financial Report Assistant</div>
+      <div class="chat-subtitle">Report: {{ reportId | slice:0:8 }}...</div>
+    </div>
+    <div class="chat-header-actions">
+      <a [routerLink]="['/dashboard', reportId]" class="btn btn-secondary btn-sm">📊 Insights</a>
+      <a routerLink="/home" class="btn btn-ghost btn-sm">← Reports</a>
     </div>
   </div>
 
-  <!-- Message list -->
-  <div class="messages" #messageContainer>
-    <div
-      *ngFor="let msg of messages"
+  <div class="messages-area" #messageContainer>
+    <div *ngFor="let msg of messages"
       class="message"
-      [class.user]="msg.role === 'user'"
-      [class.assistant]="msg.role === 'assistant'"
-    >
+      [class.user-message]="msg.role === 'user'"
+      [class.assistant-message]="msg.role === 'assistant'">
+
+      <div class="avatar" [class.user-avatar]="msg.role === 'user'" [class.ai-avatar]="msg.role === 'assistant'">
+        {{ msg.role === 'user' ? 'U' : 'AI' }}
+      </div>
+
       <div class="bubble">
-        <!-- Loading dots -->
-        <ng-container *ngIf="msg.loading">
-          <span class="loading-dots">
-            <span></span><span></span><span></span>
-          </span>
-        </ng-container>
-
-        <!-- Message content -->
+        <div class="loading-dots" *ngIf="msg.loading">
+          <span></span><span></span><span></span>
+        </div>
         <ng-container *ngIf="!msg.loading">
-          <p class="content">{{ msg.content }}</p>
-
-          <!-- Source citations -->
-          <div class="sources" *ngIf="msg.sources && msg.sources.length">
-            <p class="sources-label">Sources</p>
-            <div class="source-chip" *ngFor="let src of msg.sources">
-              <span class="src-rank">#{{ src.rank }}</span>
-              <span class="src-section">{{ src.section }}</span>
-              <span class="src-page">p.{{ src.page }}</span>
-              <span class="src-score">{{ src.score }}</span>
+          <div class="message-text">{{ msg.content }}</div>
+          <div class="sources-section" *ngIf="msg.sources && msg.sources.length">
+            <div class="sources-label">Sources</div>
+            <div class="sources-list">
+              <div class="source-chip" *ngFor="let src of msg.sources">
+                <span class="src-rank">#{{ src.rank }}</span>
+                <span class="src-sep">·</span>
+                <span class="src-section">{{ src.section }}</span>
+                <span class="src-sep">·</span>
+                <span class="src-page">p.{{ src.page }}</span>
+                <span class="src-sep">·</span>
+                <span class="src-score">{{ src.score }}</span>
+              </div>
             </div>
           </div>
         </ng-container>
@@ -43,18 +46,16 @@
     </div>
   </div>
 
-  <!-- Input area -->
-  <div class="input-area">
+  <div class="chat-input-area">
     <textarea
       [(ngModel)]="question"
       (keydown)="onKeyDown($event)"
-      placeholder="Ask about revenue, margins, cash flow..."
+      placeholder="Ask about revenue, margins, EPS, cash flow..."
       rows="2"
-      [disabled]="loading"
-    ></textarea>
-    <button (click)="sendMessage()" [disabled]="!question.trim() || loading">
+      [disabled]="loading">
+    </textarea>
+    <button class="btn btn-primary" (click)="sendMessage()" [disabled]="!question.trim() || loading">
       {{ loading ? '...' : 'Send' }}
     </button>
   </div>
-
 </div>
