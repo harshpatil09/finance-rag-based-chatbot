@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -18,11 +18,9 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef   
   ) {
-    // Reactive form with built-in validators.
-    // Validators run on every change — the template can read form.valid
-    // to enable/disable the submit button without any custom logic.
     this.form = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -39,10 +37,14 @@ export class LoginComponent {
     this.error = '';
 
     this.authService.login(this.form.value).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/home']);   
+      },
       error: (err) => {
         this.error = err.error?.detail || 'Login failed. Please try again.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
